@@ -1,0 +1,96 @@
+basic_urls1 <- "http://www.kpx.or.kr/www/contents.do?key=219&pageIndex="
+basic_urls2 <- "http://www.kpx.or.kr/www/contents.do?key=356&pageIndex="
+urls1 <- NULL
+urls2 <- NULL
+
+for (i in 1:588) {
+  urls1[i] = paste0(basic_urls1,i)
+  urls2[i] = paste0(basic_urls2,i)
+}
+
+# urls1 육지
+# urls2 제주
+
+library(rvest)
+library(dplyr)
+
+u <- list()
+for (i in 1:588) {
+  u[[i]] <- read_html(urls1[i]) %>% html_nodes(".sub_contents") %>% html_nodes("tbody") %>% html_nodes("td") %>% html_text()
+}
+u
+
+v <- list()
+for (i in 1:588) {
+  v[[i]] <- read_html(urls2[i]) %>% html_nodes(".sub_contents") %>% html_nodes("tbody") %>% html_nodes("td") %>% html_text()
+}
+v
+
+r <- list()
+for (i in 1:588) {
+  r[[i]] <- rbind(u[[i]][1:9],u[[i]][10:18],u[[i]][19:27],u[[i]][28:36],u[[i]][37:45],
+                  u[[i]][46:54],u[[i]][55:63],u[[i]][64:72],u[[i]][73:81],u[[i]][82:90])
+}
+r
+
+s <- list()
+for (i in 1:588) {
+  s[[i]] <- rbind(v[[i]][1:9],v[[i]][10:18],v[[i]][19:27],v[[i]][28:36],v[[i]][37:45],
+                  v[[i]][46:54],v[[i]][55:63],v[[i]][64:72],v[[i]][73:81],v[[i]][82:90])
+}
+s
+
+for (i in 1:588) {
+  r[[i]] <- as.data.frame(r[[i]])
+  s[[i]] <- as.data.frame(s[[i]])
+}
+
+for (i in 1:588) {
+  rownames(r[[i]]) <- c("a1","a2","a3","a4","a5","a6","a7","a8","a9","a10")
+  colnames(r[[i]]) <- c("b1","b2","b3","b4","b5","b6","b7","b8","b9")
+  rownames(s[[i]]) <- c("d1","d2","d3","d4","d5","d6","d7","d8","d9","d10")
+  colnames(s[[i]]) <- c("e1","e2","e3","e4","e5","e6","e7","e8","e9")
+}
+
+for (i in 1:588) {
+  r[[i]]$b3 <- gsub(",","",r[[i]]$b3)
+  r[[i]]$b4 <- gsub(",","",r[[i]]$b4)
+  r[[i]]$b5 <- gsub(",","",r[[i]]$b5)
+  r[[i]]$b6 <- gsub(",","",r[[i]]$b6)
+  r[[i]]$b8 <- gsub(",","",r[[i]]$b8)
+}
+
+for (i in 1:588) {
+  r[[i]]$b4 <- as.numeric(r[[i]]$b4)
+  s[[i]]$e4 <- as.character(s[[i]]$e4)
+  s[[i]]$e4 <- as.numeric(s[[i]]$e4)
+}
+
+
+for (i in 1:588) {
+  r[[i]]$b4 <- r[[i]]$b4 + s[[i]]$e4
+}
+
+for (i in 1:588) {
+  r[[i]]$b2 <- gsub(".20:00","",r[[i]]$b2)
+  r[[i]]$b2 <- gsub(".21:00","",r[[i]]$b2)
+  r[[i]]$b2 <- gsub(".10:00","",r[[i]]$b2)
+  r[[i]]$b2 <- gsub(".01:00","",r[[i]]$b2)
+  r[[i]]$b2
+}
+
+for (i in 1:588) {
+  colnames(r[[i]]) <- c("번호", "일시","설비용량","공급능력","전년","금년","증가율","공급예비력","예비율")
+}
+
+for (i in 1:588) {
+  write.csv(r[[i]],file = paste0('s_',i,'.csv'))
+}
+
+dat = read.csv(file="s_1.csv",header=T)
+for(i in 2:length(file_name))
+{
+  temp = read.table(file=file_name[i],header=T)
+  dat = rbind(dat, temp)
+}
+dat
